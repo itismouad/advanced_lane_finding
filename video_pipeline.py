@@ -68,8 +68,8 @@ class videoPipeline():
         # initialize helpers class
         self.CC = CameraCalibration(camera_calibration_path)
         self.IP = ImageProcessing()
-        self.LD = LaneDetection()
-        self.Dr = Drawer()
+        self.LD = LaneDetection(self.IP)
+        self.Dr = Drawer(self.LD)
         
         self.left_line = Line(frames_to_keep)
         self.right_line = Line(frames_to_keep)
@@ -93,7 +93,7 @@ class videoPipeline():
         left_fit, right_fit, left_fit_curve, right_fit_curve, _, _, _, _, _ = self.LD.detect_lanes(img)
 
         # Gather curvature
-        left_curvature, right_curvature = self.LD.get_curvature(yRange, left_fit_curve), self.LD.get_curvature(yRange, right_fit_curve)
+        left_curvature, right_curvature = self.LD.get_curvature(self.LD.yRange, left_fit_curve), self.LD.get_curvature(self.LD.yRange, right_fit_curve)
 
         # Calculate vehicle center
         x_max = img.shape[1]*self.LD.xm_per_pix

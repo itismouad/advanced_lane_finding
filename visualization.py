@@ -18,8 +18,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-from collections import deque
-from moviepy.editor import VideoFileClip
 
 
 
@@ -42,6 +40,7 @@ def show_images(images, n_row=1, n_col=2, figsize=(15, 10), cmap=None, save=Fals
 
 
 def compare_images(two_images, two_labels):
+    
     fig, axes = plt.subplots(ncols=2, figsize=(20, 10))
     axes[0].imshow(two_images[0])
     axes[0].set_title(two_labels[0])

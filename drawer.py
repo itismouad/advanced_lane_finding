@@ -1,4 +1,9 @@
+# -*- coding: utf-8 -*-
+# encoding=utf8
 
+"""
+ Written by Mouad Hadji (@itismouad)
+"""
 
 import os
 import sys
@@ -12,19 +17,24 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-from collections import deque
-from moviepy.editor import VideoFileClip
 
 
 class Drawer():
     
-    def __init__(self):
-        self.LD = LaneDetection()
+    def __init__(self, LaneDetection):
+        self.LD = LaneDetection
+
         
     def draw_line(self, img, left_fit, right_fit):
-        """
-        Draw the lane lines on the image `img` using the poly `left_fit` and `right_fit`.
-        """
+        '''
+        Inputs
+        img: input image
+        left_fit: polynomial of left lane line
+        right_fit: polynomial of right lane line
+        ---
+        Returns
+        Draw the lane lines on the image `img` using the poly `left_fit` and `right_fit`
+        '''
         yMax = img.shape[0]
         ploty = np.linspace(0, yMax - 1, yMax)
         color_warp = np.zeros_like(img).astype(np.uint8)
@@ -42,13 +52,18 @@ class Drawer():
         cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
 
         # Warp the blank back to original image space using inverse perspective matrix (Minv)
-        newwarp = cv2.warpPerspective(color_warp, Minv, (img.shape[1], img.shape[0])) 
+        newwarp = cv2.warpPerspective(color_warp, self.LD.Minv, (img.shape[1], img.shape[0])) 
         return cv2.addWeighted(img, 1, newwarp, 0.3, 0)
+
     
     def draw_lane_on_image(self, img):
-        """
+        '''
+        Inputs
+        img: input image
+        ---
+        Returns
         Find and draw the lane lines on the image `img`.
-        """
+        '''
         left_fit, right_fit, _, _, _, _, _, _, _ = self.LD.detect_lanes(img)
         output = self.draw_line(img, left_fit, right_fit)
         return output

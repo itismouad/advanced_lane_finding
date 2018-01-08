@@ -16,23 +16,22 @@ from scipy import ndimage
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from collections import deque
-from moviepy.editor import VideoFileClip
-
-from image_processing import ImageProcessing
 
 
-class LaneDetection():
-
-	
+class LaneDetection():	
     
-    def __init__(self):
-        self.IP = ImageProcessing()
+
+    def __init__(self, ImageProcessing, new_src_points=None, new_dst_points=None, new_yRange=None):
+        self.IP = ImageProcessing
         self.ym_per_pix = 30/720 # meters per pixel in y dimension
-        self.xm_per_pix = 3.7/700 # meters per pixel in x dimension     
+        self.xm_per_pix = 3.7/700 # meters per pixel in x dimension    
+        self.src_points = np.array([[205, 720], [1120, 720], [745, 480], [550, 480]], np.float32) if new_src_points is None else new_src_points # source points for the perspective transform
+        self.dst_points = np.array([[205, 720], [1120, 720], [1120, 0], [205, 0]], np.float32) if new_dst_points is None else new_dst_points  # destination points for the perspective transform
+        self.M = cv2.getPerspectiveTransform(self.src_points, self.dst_points)
+        self.Minv = cv2.getPerspectiveTransform(self.dst_points, self.src_points)
+        self.yRange = 719 if new_yRange is None else new_yRange # y range where curvature is measured
     
+
     def detect_lanes(self, img, nwindows = 9, margin=110, minpix=50):
         """
         Find the polynomial representation of the lines in the `image` using:
@@ -42,7 +41,7 @@ class LaneDetection():
         """
         # Make a binary and transform image
         processed_img = self.IP.combine_grad_color(img)
-        binary_warped = perspective_transform(processed_img, src_points, dst_points)[0]
+        binary_warped = self.IP.perspective_transform(processed_img, self.src_points, self.dst_points)[0]
         # Take a histogram of the bottom half of the image
         histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
         # Create an output image to draw on and  visualize the result
@@ -109,6 +108,7 @@ class LaneDetection():
 
         return left_fit, right_fit, left_fit_curve, right_fit_curve, left_lane_inds, right_lane_inds, out_img, nonzerox, nonzeroy
     
+
     def plot_lanes(self, img, ax):
         """
         Visualize the windows and fitted lines for `image`.
@@ -127,6 +127,7 @@ class LaneDetection():
         ax.plot(right_fitx, ploty, color='yellow')
         return left_fit, right_fit, left_fit_curve, right_fit_curve
     
+
     def show_lanes(self, images, cols = 2, rows = 4, figsize=(15,13)):
         """
         Display `images` on a [`cols`, `rows`] subplot grid.
@@ -142,7 +143,8 @@ class LaneDetection():
                 left_fit, right_fit, left_fit_curve, right_fit_curve = self.plot_lanes(image, ax)
                 self.fits.append((left_fit, right_fit))
                 self.fits_curve.append((left_fit_curve, right_fit_curve))
-                
+    
+
     def get_curvature(self, yRange, side_fit_curve):
         """
         Returns the in meters curvature of the polynomial `fit` on the y range `yRange`.

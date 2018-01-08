@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # encoding=utf8
 
-
 """
  Written by Mouad Hadji (@itismouad)
 """
@@ -16,10 +15,6 @@ from scipy import ndimage
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from collections import deque
-from moviepy.editor import VideoFileClip
 
 
 class CameraCalibration():
@@ -40,6 +35,9 @@ class CameraCalibration():
         
         
     def load_images(self):
+        '''
+        Load calibration images from class camera path
+        '''
         camera_cal_list = [os.path.join(self.camera_path, imname) for imname in os.listdir(self.camera_path)]
         camera_cal_img = [cv2.imread(full_imname) for full_imname in camera_cal_list]
         return camera_cal_img
@@ -50,8 +48,6 @@ class CameraCalibration():
         '''
         Inputs
         img: input chessboard image
-        nx: number of inside corners on the x axis
-        ny: number of inside corners on the y axis
         ---
         Returns
         matrix of corners if there were corners
@@ -89,5 +85,12 @@ class CameraCalibration():
 
         
     def undistort(self, img):
+        '''
+        Inputs
+        img: distorted image
+        ---
+        Returns
+        undistorted image using class calibration attributes
+        '''
         undist = cv2.undistort(img, self.mtx, self.dist, None, self.mtx)
         return undist

@@ -16,23 +16,19 @@ from scipy import ndimage
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from collections import deque
-from moviepy.editor import VideoFileClip
+
 
 
 class ImageProcessing():
 
 
-
-    # Convert to HLS color space and separate the S channel
-    # Note: img is the undistorted image
     def extract_s_channel(self, img):
+        # Convert to HLS color space and separate the S channel
+        # Note: img is the undistorted image
         hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
         s_channel = hls[:,:,2]
         return s_channel
- 
+        
    
     # Grayscale image
     def gray_scale(self, img):
@@ -193,19 +189,19 @@ class ImageProcessing():
 
 
     ## transform image
-	def perspective_transform(self, img, src_points, dst_points):
-	    
-	    ## define image shape
-	    img_size = (img.shape[1], img.shape[0])
+    def perspective_transform(self, img, src_points, dst_points):
+        
+        ## define image shape
+        img_size = (img.shape[1], img.shape[0])
 
-	    ## define source and destination points
-	    src = np.array(src_points, np.float32)
-	    dst = np.array(dst_points, np.float32)
-	    
-	    ## perform transformation
-	    M = cv2.getPerspectiveTransform(src, dst)
-	    Minv = cv2.getPerspectiveTransform(dst, src)
+        ## define source and destination points
+        src = np.array(src_points, np.float32)
+        dst = np.array(dst_points, np.float32)
+        
+        ## perform transformation
+        self.M = cv2.getPerspectiveTransform(src, dst)
+        self.Minv = cv2.getPerspectiveTransform(dst, src)
 
-	    warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
-	    
-	    return warped, M, Minv
+        warped = cv2.warpPerspective(img, self.M, img_size, flags=cv2.INTER_LINEAR)
+        
+        return warped, self.M, self.Minv
