@@ -220,7 +220,7 @@ The image above was displayed thanks to the **videoPipeline()** python class loc
 * code : [video_pipeline.py](https://github.com/itismouad/advanced_lane_finding/blob/master/video_pipeline.py)
 * name of the python class :  **videoPipeline()**
 
-The final video can be found here : [project_video_output.mp4](project_video_ouput.mp4). There are some glitches in the current pipeline but overall, it has a strong perfoamence.
+The final video can be found here : [project_video_output.mp4](project_video_ouput.mp4). There are some glitches in the current pipeline but overall, it has a strong performance.
 
 
 ## Discussion
