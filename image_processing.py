@@ -188,6 +188,30 @@ class ImageProcessing():
 
 
 
+    def select_yellow(self, img):
+        hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+        lower = np.array([20,60,60])
+        upper = np.array([38,174, 250])
+        mask = cv2.inRange(hsv, lower, upper)
+        return mask
+    
+    
+    def select_white(self, img):
+        lower = np.array([202,202,202])
+        upper = np.array([255,255,255])
+        mask = cv2.inRange(img, lower, upper)
+        return mask
+    
+    
+    def final_thresh(self, img):
+        yellow = self.select_yellow(img)
+        white = self.select_white(img)
+        combined_binary = np.zeros_like(yellow)
+        combined_binary[(yellow >= 1) | (white >= 1)] = 1
+        return combined_binary
+
+
+
     ## transform image
     def perspective_transform(self, img, src_points, dst_points):
         

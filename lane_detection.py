@@ -40,7 +40,7 @@ class LaneDetection():
         - `minpix` as minimum number of pixes found to recenter the window.
         """
         # Make a binary and transform image
-        processed_img = self.IP.combine_grad_color(img)
+        processed_img = self.IP.final_thresh(img)
         binary_warped = self.IP.perspective_transform(processed_img, self.src_points, self.dst_points)[0]
         # Take a histogram of the bottom half of the image
         histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
@@ -98,13 +98,20 @@ class LaneDetection():
         rightx = nonzerox[right_lane_inds]
         righty = nonzeroy[right_lane_inds] 
 
-        # Fit a second order polynomial to each
-        left_fit = np.polyfit(lefty, leftx, 2)
-        right_fit = np.polyfit(righty, rightx, 2)
-        
-        # Fit a new second order polynomial in world space
-        left_fit_curve = np.polyfit(lefty*self.ym_per_pix, leftx*self.xm_per_pix, 2)
-        right_fit_curve = np.polyfit(righty*self.ym_per_pix, rightx*self.xm_per_pix, 2)
+        # Fit a second order polynomial to each + Fit a new second order polynomial in world space
+        try:
+            left_fit = np.polyfit(lefty, leftx, 2)
+            left_fit_curve = np.polyfit(lefty*self.ym_per_pix, leftx*self.xm_per_pix, 2)
+        except:
+            left_fit = None
+            left_fit_curve = None
+
+        try:
+            right_fit = np.polyfit(righty, rightx, 2)
+            right_fit_curve = np.polyfit(righty*self.ym_per_pix, rightx*self.xm_per_pix, 2)
+        except:
+            right_fit = None
+            right_fit_curve = None
 
         return left_fit, right_fit, left_fit_curve, right_fit_curve, left_lane_inds, right_lane_inds, out_img, nonzerox, nonzeroy
     
@@ -149,4 +156,7 @@ class LaneDetection():
         """
         Returns the in meters curvature of the polynomial `fit` on the y range `yRange`.
         """
-        return ((1 + (2*side_fit_curve[0]*yRange*self.ym_per_pix + side_fit_curve[1])**2)**1.5) / np.absolute(2*side_fit_curve[0])
+        try:
+            return ((1 + (2*side_fit_curve[0]*yRange*self.ym_per_pix + side_fit_curve[1])**2)**1.5) / np.absolute(2*side_fit_curve[0])
+        except:
+            return None

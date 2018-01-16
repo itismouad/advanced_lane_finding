@@ -12,6 +12,7 @@ import glob
 import pickle
 import cv2
 import random
+import json
 from scipy import ndimage
 from tqdm import tqdm
 import pandas as pd
@@ -32,38 +33,95 @@ print("Current input file: " , input_file)
 print("Current output file: " , output_file)
 
 camera_calibration_path = os.path.join(os.getcwd(), "camera_cal")
+config_path = os.path.join(os.getcwd(), "config")
+
+with open(os.path.join(config_path, 'config.json')) as json_data_file:
+    config_data = json.load(json_data_file)
+    robustness_params = config_data["robustness"]
 
 
 class Line():
     
-    def __init__(self, frames_to_keep):
-        # was the line detected in the last iteration?
-        self.detected = False  
+    def __init__(self, frames_to_keep, robustness_params, label=None):
         
-        # x values of the last n fits of the line
-        self.recent_xfitted = deque(maxlen=frames_to_keep) # []
+        # Robustness params
+        self.params = robustness_params
         
-        # polynomial coefficients averaged over the last n iterations
-        self.best_fit = None  
+        # Name of the line
+        self.label = label
         
-        # polynomial coefficients for the most recent fit
+        # was the line detected in the last iteration? >> DONE
+        self.detected = False
+        
+        # polynomial coefficients for the most recent fit >> DONE
         self.current_fit = [np.array([False])]
+      
+        # polynomial coefficients for the most recent fit in real world metrics >> DONE
+        self.current_fit_curve = [np.array([False])]
         
-        # polynomial coefficients for the most recent fit in real world metrics
-        self.current_fit_curve = [np.array([False])] 
+        # polynomial coefficients for the most recent fit history >> DONE
+        self.current_fit_history = []
         
-        # radius of curvature of the line in some units
+        # polynomial coefficients for the most recent fit change history >> DONE
+        self.current_fit_change_history = []
+        
+        # boolean for updates to polynomial coefficients
+        self.current_fit_update_history = []
+        
+        # radius of curvature of the line in some units >> DONE
         self.radius_of_curvature = None 
+        
+        # radius of curvature of the line in some units history >> DONE
+        self.radius_of_curvature_history = [] 
+        
+        # radius of curvature of the line in some units change history >> DONE
+        self.radius_of_curvature_change_history = []
+        
+        # boolean for updates to radius of curvature of the line
+        self.radius_of_curvature_update_history = []
 
-        # detected line pixels
-        self.lane_idx = deque(maxlen=frames_to_keep)
+        
+    def check_value_curvature(self, curve_new):
+        self.radius_of_curvature_history.append(curve_new)
+        return curve_new < self.params["CURVATURE_RAW_CHECK"]
+    
+        
+    def check_change_curvature(self, curve_new):
+        ## calculate absolute change
+        change = np.abs((self.radius_of_curvature - curve_new) / self.radius_of_curvature)
+        ## store value
+        self.radius_of_curvature_change_history.append(change)
+        return change < self.params["CURVATURE_CHANGE_STABILITY"]
+    
+    
+    def check_value_fit(self, coef_new):
+        self.current_fit_history.append(coef_new)
+        bool = all([
+            np.abs(coef_new[0]) < self.params["CURVE_A_RAW_CHECK_A"],
+            np.abs(coef_new[1]) < self.params["CURVE_A_RAW_CHECK_B"],
+            np.abs(coef_new[2]) < self.params["CURVE_A_RAW_CHECK_C"]
+        ])
+        return bool
+    
+    
+    def check_change_fit(self, coef_new):    
+        ## calculate absolute change
+        change = (self.current_fit - coef_new) / self.current_fit
+        ## store values
+        self.current_fit_change_history.append(change)
+        bool = all([
+            np.abs(change[0]) < self.params["CURVE_CHANGE_STABILITY_A"],
+            np.abs(change[1]) < self.params["CURVE_CHANGE_STABILITY_B"],
+            np.abs(change[2]) < self.params["CURVE_CHANGE_STABILITY_C"]
+        ])
+        return bool
 
 
 
 
 class videoPipeline():
     
-    def __init__(self, frames_to_keep=10):
+    def __init__(self, robustness_params, frames_to_keep=10):
         
         # initialize helpers class
         self.CC = CameraCalibration(camera_calibration_path)
@@ -71,18 +129,10 @@ class videoPipeline():
         self.LD = LaneDetection(self.IP)
         self.Dr = Drawer(self.LD)
         
-        self.left_line = Line(frames_to_keep)
-        self.right_line = Line(frames_to_keep)
-        
-        self.current_lines_info = []
-        
-        # curvature info
-        self.curvature = None
-        self.curve_good = None
-        
-        # change history
-        self.fit_change_hist = []
-        self.curve_change_hist = []
+        # initialize lane lines
+        self.LEFT_LINE = Line(frames_to_keep, robustness_params, 'LEFT')
+        self.RIGHT_LINE = Line(frames_to_keep, robustness_params, 'RIGHT')
+        self.DELTA_FROM_CENTER = None
         
         
     def calculate_lines_info(self, img):
@@ -101,14 +151,20 @@ class videoPipeline():
         vehicle_center = x_max / 2
 
         # Calculate delta between vehicle center and lane center
-        left_line = left_fit_curve[0]*y_max**2 + left_fit_curve[1]*y_max + left_fit_curve[2]
-        right_line = right_fit_curve[0]*y_max**2 + right_fit_curve[1]*y_max + right_fit_curve[2]
-        center_line = left_line + (right_line - left_line)/2
-        delta_from_center = center_line - vehicle_center
+        if left_fit is not None and right_fit is not None:
+            left_line_pos = left_fit_curve[0]*y_max**2 + left_fit_curve[1]*y_max + left_fit_curve[2]
+            right_line_pos = right_fit_curve[0]*y_max**2 + right_fit_curve[1]*y_max + right_fit_curve[2]   
+            line_center = (left_line_pos + right_line_pos)/2
+            
+            delta_from_center =  vehicle_center - line_center
+            
+        else:
+            delta_from_center = None
 
         return [left_fit, right_fit, left_fit_curve, right_fit_curve, left_curvature, right_curvature, delta_from_center]
 
-    
+
+
     def display_info(self, img, lines_info, font = cv2.FONT_HERSHEY_SIMPLEX, font_scale=1, font_color = (255, 255, 255)):
 
         left_fit, right_fit, _, _, left_curvature, right_curvature, delta_from_center = lines_info
@@ -124,35 +180,77 @@ class videoPipeline():
         cv2.putText(output, 'Vehicle is {} of center'.format(message), (50, 190), font, font_scale, font_color, 2)
         return output
     
-    
-    def static_processing(self, img):
-        lines_info = self.calculate_lines_info(img)
-        return self.display_info(img, lines_info)
-        
 
-    def dynamic_processing(self, img):
-        
+    def smart_processing(self, img):
+
         lines_info = self.calculate_lines_info(img)
         
         left_fit, right_fit, left_fit_curve, right_fit_curve, left_curvature, right_curvature, delta_from_center = lines_info
+
+        ### Detected ? ###
+        self.LEFT_LINE.detected = False if left_fit is None else True
+        self.RIGHT_LINE.detected = False if right_fit is None else True
         
-        if left_curvature > 10000:
-            left_fit = self.left_line.current_fit
-            left_fit_curve = self.left_line.current_fit_curve
-            left_curvature = self.left_line.radius_of_curvature
+        ## Sanity checks : LEFT ##
+        if self.LEFT_LINE.detected and self.LEFT_LINE.check_value_fit(left_fit):
+            # Lane detected >> 
+            if (len(self.LEFT_LINE.current_fit_history) <=1) or (len(self.LEFT_LINE.current_fit_history) > 1 and self.LEFT_LINE.check_change_fit(left_fit)):
+                self.LEFT_LINE.current_fit = left_fit
+                self.LEFT_LINE.current_fit_curve = left_fit_curve
+                self.LEFT_LINE.current_fit_update_history.append("OK")
+            else:
+                # there is history but the change is too brutal
+                left_fit = self.LEFT_LINE.current_fit
+                left_fit_curve = self.LEFT_LINE.current_fit_curve
+                self.LEFT_LINE.current_fit_update_history.append("Brutal change.")
         else:
-            self.left_line.current_fit = left_fit
-            self.left_line.current_fit_curve = left_fit_curve
-            self.left_line.radius_of_curvature = left_curvature
+            # Line not detected >> old value
+            left_fit = self.LEFT_LINE.current_fit
+            left_fit_curve = self.LEFT_LINE.current_fit_curve
+            self.LEFT_LINE.current_fit_update_history.append("Value issue.")
+                
+        if self.LEFT_LINE.detected and self.LEFT_LINE.check_value_curvature(left_curvature):
+            if (len(self.LEFT_LINE.radius_of_curvature_history) <= 1) or (len(self.LEFT_LINE.radius_of_curvature_history) > 1 and self.LEFT_LINE.check_change_curvature(left_curvature)):
+                self.LEFT_LINE.radius_of_curvature = left_curvature
+                self.LEFT_LINE.radius_of_curvature_update_history.append("OK")
+            else:
+                left_curvature = self.LEFT_LINE.radius_of_curvature
+                self.LEFT_LINE.radius_of_curvature_update_history.append("Brutal change.")
+        else:
+            left_curvature = self.LEFT_LINE.radius_of_curvature
+            self.LEFT_LINE.radius_of_curvature_update_history.append("Value issue.")
         
-        if right_curvature > 10000:
-            right_fit = self.right_line.current_fit
-            right_fit_curve = self.right_line.current_fit_curve
-            right_curvature = self.right_line.radius_of_curvature
+        ## Sanity checks : RIGHT ##  
+        if self.RIGHT_LINE.detected and self.RIGHT_LINE.check_value_fit(right_fit):
+            if (len(self.RIGHT_LINE.current_fit_history) <=1) or (len(self.RIGHT_LINE.current_fit_history) > 1 and self.RIGHT_LINE.check_change_fit(right_fit)):
+                self.RIGHT_LINE.current_fit = right_fit
+                self.RIGHT_LINE.current_fit_curve = right_fit_curve
+                self.RIGHT_LINE.current_fit_update_history.append("OK")
+            else:
+                right_fit = self.RIGHT_LINE.current_fit
+                right_fit_curve = self.RIGHT_LINE.current_fit_curve
+                self.RIGHT_LINE.current_fit_update_history.append("Brutal change.")
         else:
-            self.right_line.current_fit = right_fit
-            self.right_line.current_fit_curve = right_fit_curve
-            self.right_line.radius_of_curvature = right_curvature
+            right_fit = self.RIGHT_LINE.current_fit
+            right_fit_curve = self.RIGHT_LINE.current_fit_curve
+            self.RIGHT_LINE.current_fit_update_history.append("Value issue.")
+                
+        if self.RIGHT_LINE.detected and self.RIGHT_LINE.check_value_curvature(right_curvature):
+            if (len(self.RIGHT_LINE.radius_of_curvature_history) <= 1) or (len(self.RIGHT_LINE.radius_of_curvature_history) > 1 and self.RIGHT_LINE.check_change_curvature(right_curvature)):
+                self.RIGHT_LINE.radius_of_curvature = right_curvature
+                self.RIGHT_LINE.radius_of_curvature_update_history.append("OK")
+            else:
+                right_curvature = self.RIGHT_LINE.radius_of_curvature
+                self.RIGHT_LINE.radius_of_curvature_update_history.append("Brutal change.")
+        else:
+            right_curvature = self.RIGHT_LINE.radius_of_curvature
+            self.RIGHT_LINE.radius_of_curvature_update_history.append("Value issue.")
+            
+        ### Process DELTA_FROM_CENTER ###
+        if delta_from_center is None:
+            delta_from_center = self.DELTA_FROM_CENTER
+        else:
+            self.DELTA_FROM_CENTER = delta_from_center 
         
         safe_lines_info = left_fit, right_fit, left_fit_curve, right_fit_curve, left_curvature, right_curvature, delta_from_center
         
@@ -162,12 +260,12 @@ class videoPipeline():
     def run(self, input_video, output_video):
         
         raw_clip = VideoFileClip(input_video)
-        processed_clip = raw_clip.fl_image(self.dynamic_processing)
+        processed_clip = raw_clip.fl_image(self.smart_processing)
         processed_clip.write_videofile(output_video, audio=False)
 
 
 
 if __name__ == "__main__":
 
-    vP = videoPipeline()
+    vP = videoPipeline(robustness_params)
     vP.run(input_file, output_file)

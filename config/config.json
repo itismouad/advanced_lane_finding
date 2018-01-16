@@ -1,0 +1,12 @@
+{
+    "robustness":{
+        "CURVATURE_RAW_CHECK":1000000,
+        "CURVATURE_CHANGE_STABILITY":10,
+        "CURVE_A_RAW_CHECK_A":0.0005,
+        "CURVE_A_RAW_CHECK_B":0.5,
+        "CURVE_A_RAW_CHECK_C":1500,
+        "CURVE_CHANGE_STABILITY_A":500,
+        "CURVE_CHANGE_STABILITY_B":100,
+        "CURVE_CHANGE_STABILITY_C":0.5
+    }
+}
