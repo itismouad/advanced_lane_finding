@@ -1,6 +1,20 @@
 # Advanced Lane Finding
 
-## Task
+Identification of lane lines and curvature of the road.
+
+## Usage
+
+`video_pipeline.py path_to_input_video path_to_output_video`
+
+Input video needs to be a feed from centered onboard camera.
+
+## Example
+
+`video_pipeline.py ../videos/project_video.mp4 project_video_output.mp4`
+
+![alt text][compare_start_end]
+
+## Detailed description
 
 [//]: # (Image References)
 
@@ -21,14 +35,4 @@ The steps of this project are the following:
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 * Work on robustness of detection algorithm
-
-## Usage
-
-`video_pipeline.py path_to_input_video path_to_output_video`
-
-Input video needs to be a feed from centered onboard camera.
-
-## Example
-
-![alt text][compare_start_end]
 
