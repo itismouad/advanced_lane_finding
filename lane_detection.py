@@ -23,8 +23,8 @@ class LaneDetection():
 
     def __init__(self, ImageProcessing, new_src_points=None, new_dst_points=None, new_yRange=None):
         self.IP = ImageProcessing
-        self.ym_per_pix = 30/720 # meters per pixel in y dimension
-        self.xm_per_pix = 3.7/700 # meters per pixel in x dimension    
+        self.ym_per_pix = 11/720 # meters per pixel in y dimension = [estimate of real length of lane] / [y length in pixels of lane]
+        self.xm_per_pix = 3.7/1100 # meters per pixel in x dimension = [estimate of real width of lane] / [x width in pixels of lane]
         self.src_points = np.array([[205, 720], [1120, 720], [745, 480], [550, 480]], np.float32) if new_src_points is None else new_src_points # source points for the perspective transform
         self.dst_points = np.array([[205, 720], [1120, 720], [1120, 0], [205, 0]], np.float32) if new_dst_points is None else new_dst_points  # destination points for the perspective transform
         self.M = cv2.getPerspectiveTransform(self.src_points, self.dst_points)
