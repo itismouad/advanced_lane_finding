@@ -20,6 +20,7 @@ The steps of this project are the following:
 * Determine the curvature of the lane and vehicle position with respect to center.
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
+* Work on robustness of detection algorithm
 
 ## Usage
 
