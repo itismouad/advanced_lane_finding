@@ -27,7 +27,7 @@
 
 In this project, my main goal was to take a video feed from an onboard camera and identify the lane lines and the curvature of the road. To showcase this, we will use computer vision techniques such as gradient and color thresholding.
 
-You will find the code for this project is in the [IPython Notebook](https://github.com/itismouad/advanced_lane_finding/blob/master/Advanced%20Lane%20Finding.ipynb) and a [video](https://github.com/itismouad/advanced_lane_finding/blob/master/project_video_ouput.mp4) displaying how our pipeline can allow to detect lanes and curvature on the road.
+You will find the code for this project is in the [IPython Notebook](https://github.com/itismouad/advanced_lane_finding/blob/master/Advanced%20Lane%20Finding.ipynb) and a [video](https://github.com/itismouad/advanced_lane_finding/blob/master/videos/project_video_output.mp4) displaying how our pipeline can allow to detect lanes and curvature on the road.
 
 ![alt text][compare_start_end]
 
@@ -45,7 +45,7 @@ For this purpose, I will aim at achieving the following steps :
 
 ## Camera Calibration
 
-* code : [calibration.py](https://github.com/itismouad/advanced_lane_finding/blob/master/calibration.py)
+* code : [calibration.py](https://github.com/itismouad/advanced_lane_finding/blob/master/src/calibration.py)
 * name of the python class :  **CameraCalibration()**
 
 The images I receive as an input are coming from the forward facing camera. Hence, these images are subject to different types of distortion that need to be accounted for if we want to properly calculate distance to objects or metrics such as curvature of the lane lines. 
@@ -78,7 +78,7 @@ If we look attentively at the white car, you will notice the effect of the camer
 
 ## Image Processing to Detect Lane Lines
 
-* code : [image_processing.py](https://github.com/itismouad/advanced_lane_finding/blob/master/image_processing.py)
+* code : [image_processing.py](https://github.com/itismouad/advanced_lane_finding/blob/master/src/image_processing.py)
 * name of the python class :  **ImageProcessing()**
 
 Now that we have undistorted images, we can start to detect lane lines in the images. Ultimately, we would like to calculate the curvature of the lanes so that we can decide how to steer our car.
@@ -141,7 +141,7 @@ Combining all the filters allows us to have a fairly good lane line detection ev
 
 ## Perspective Transform
 
-* code : [image_processing.py](https://github.com/itismouad/advanced_lane_finding/blob/master/image_processing.py)
+* code : [image_processing.py](https://github.com/itismouad/advanced_lane_finding/blob/master/src/image_processing.py)
 * name of the python class :  **ImageProcessing()**
 
 It's time now to think about applying a perspective transform to rectify binary image ("birds-eye view").
@@ -185,7 +185,7 @@ _On binary outputs :_
 
 ## Detect Lane Lines
 
-* code : [lane_detection.py](https://github.com/itismouad/advanced_lane_finding/blob/master/lane_detection.py)
+* code : [lane_detection.py](https://github.com/itismouad/advanced_lane_finding/blob/master/src/lane_detection.py)
 * name of the python class :  **LaneDetection()**
 
 ### Polynomial Line Fitting
@@ -213,14 +213,14 @@ Then, to find the vehicle position on the center, one needs to calculate the lan
 
 ![alt text][curv_details]
 
-The image above was displayed thanks to the **videoPipeline()** python class located in [video_pipeline.py](https://github.com/itismouad/advanced_lane_finding/blob/master/video_pipeline.py) (see `static_processing` and `dynamic_processing`).
+The image above was displayed thanks to the **videoPipeline()** python class located in [video_pipeline.py](https://github.com/itismouad/advanced_lane_finding/blob/master/src/video_pipeline.py) (see `static_processing` and `dynamic_processing`).
 
 ## Pipeline (video)
 
-* code : [video_pipeline.py](https://github.com/itismouad/advanced_lane_finding/blob/master/video_pipeline.py)
+* code : [video_pipeline.py](https://github.com/itismouad/advanced_lane_finding/blob/master/src/video_pipeline.py)
 * name of the python class :  **videoPipeline()**
 
-The final video can be found here : [project_video_output.mp4](project_video_ouput.mp4). There are some glitches in the current pipeline but overall, it has a strong performance.
+The final video can be found here : [project_video_output.mp4](https://github.com/itismouad/advanced_lane_finding/blob/master/videos/project_video_output.mp4). There are some glitches in the current pipeline but overall, it has a strong performance.
 
 
 ## Discussion
