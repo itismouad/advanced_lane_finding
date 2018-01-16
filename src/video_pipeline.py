@@ -32,8 +32,8 @@ input_file, output_file = str(sys.argv[1]), str(sys.argv[2])
 print("Current input file: " , input_file)
 print("Current output file: " , output_file)
 
-camera_calibration_path = os.path.join(os.getcwd(), "camera_cal")
-config_path = os.path.join(os.getcwd(), "config")
+camera_calibration_path = "../camera_cal"
+config_path = "../config"
 
 with open(os.path.join(config_path, 'config.json')) as json_data_file:
     config_data = json.load(json_data_file)
