@@ -22,7 +22,7 @@ Input video needs to be a feed from centered onboard camera.
 
 In this project, my main goal is to take a video feed from an onboard camera and **identify the lane lines and the curvature of the road**. To showcase this, we will use computer vision techniques such as gradient and color thresholding.
 
-You will find the merged code for this project is in the [IPython Notebook](https://github.com/itismouad/advanced_lane_finding/blob/master/Advanced%20Lane%20Finding.ipynb) and a [video](https://github.com/itismouad/advanced_lane_finding/blob/master/videos/project_video_output.mp4) displaying how my pipeline can allow to detect lanes and curvature on the road. A more detailed report of the project is available [here](https://github.com/itismouad/advanced_lane_finding/blob/master/advanced_lane_finding.md).
+You will find the merged code for this project is in the [IPython Notebook](https://github.com/itismouad/advanced_lane_finding/blob/master/notebooks/Advanced%20Lane%20Finding.ipynb) and a [video](https://github.com/itismouad/advanced_lane_finding/blob/master/videos/project_video_output.mp4) displaying how my pipeline can allow to detect lanes and curvature on the road. A more detailed report of the project is available [here](https://github.com/itismouad/advanced_lane_finding/blob/master/advanced_lane_finding.md).
 
 The steps of this project are the following:
 
