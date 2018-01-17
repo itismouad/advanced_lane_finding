@@ -2,17 +2,26 @@
 # encoding=utf8
 
 
-"""
- Written by Mouad Hadji (@itismouad)
+"""Identification of lane lines and curvature of the road. Written by Mouad Hadji (@itismouad)
+
+ Usage:
+  video_pipeline.py [-i <file>] [-o <file>]
+  video_pipeline.py -h | --help
+
+Options:
+  -h --help
+  -i <file> --input <file>   Input text file [default: ../videos/project_video.mp4]
+  -o <file> --output <file>  Output generated file [default: ../videos/project_video_output.mp4]
+
 """
 
-import os
-import sys
+import os, sys
 import glob
 import pickle
 import cv2
 import random
 import json
+from docopt import docopt
 from scipy import ndimage
 from tqdm import tqdm
 import pandas as pd
@@ -27,10 +36,6 @@ from image_processing import ImageProcessing
 from lane_detection import LaneDetection
 from drawer import Drawer
 
-input_file, output_file = str(sys.argv[1]), str(sys.argv[2])
-
-print("Current input file: " , input_file)
-print("Current output file: " , output_file)
 
 camera_calibration_path = "../camera_cal"
 config_path = "../config"
@@ -38,6 +43,7 @@ config_path = "../config"
 with open(os.path.join(config_path, 'config.json')) as json_data_file:
     config_data = json.load(json_data_file)
     robustness_params = config_data["robustness"]
+
 
 
 class Line():
@@ -266,6 +272,9 @@ class videoPipeline():
 
 
 if __name__ == "__main__":
-
+    parameters = docopt(__doc__)
+    input_file, output_file = parameters['--input'], parameters['--output']
+    print("Current input file: " , input_file)
+    print("Current output file: " , output_file)
     vP = videoPipeline(robustness_params)
     vP.run(input_file, output_file)
