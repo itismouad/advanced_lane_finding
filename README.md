@@ -28,7 +28,7 @@ NB: Input video needs to be a feed from centered onboard camera.
 
 ```
 # Quickly generate lines and curvature statistics for sample video
-video_pipeline.py -i ../videos/project_video.mp4 -o project_video_output.mp4
+video_pipeline.py -i ../videos/project_video.mp4 -o ../videos/project_video_output.mp4
 ```
 
 ![alt text][compare_start_end]
