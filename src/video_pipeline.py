@@ -37,14 +37,6 @@ from lane_detection import LaneDetection
 from drawer import Drawer
 
 
-camera_calibration_path = "../camera_cal"
-config_path = "../config"
-
-with open(os.path.join(config_path, 'config.json')) as json_data_file:
-    config_data = json.load(json_data_file)
-    robustness_params = config_data["robustness"]
-
-
 
 class Line():
     
@@ -272,9 +264,18 @@ class videoPipeline():
 
 
 if __name__ == "__main__":
+    
     parameters = docopt(__doc__)
     input_file, output_file = parameters['--input'], parameters['--output']
     print("Current input file: " , input_file)
     print("Current output file: " , output_file)
+
+    camera_calibration_path = "../camera_cal"
+    config_path = "../config"
+
+    with open(os.path.join(config_path, 'config.json')) as json_data_file:
+        config_data = json.load(json_data_file)
+        robustness_params = config_data["robustness"]
+
     vP = videoPipeline(robustness_params)
     vP.run(input_file, output_file)
