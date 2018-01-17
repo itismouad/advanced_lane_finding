@@ -6,7 +6,7 @@ Identification of lane lines and curvature of the road.
 
 ```
 conda env create -f environment.yml
-source activate environment.yml
+source activate environment
 ```
 
 ## Usage
